@@ -1,0 +1,37 @@
+pipeline {
+    agent any
+    options { timestamps() }
+
+    stages {
+        stage('Checkout') {
+            steps { echo 'Source code checkout completed' }
+        }
+        stage('Validate website') {
+            steps {
+                sh '''
+                    test -f index.html
+                    test -f css/style.css
+                    test -f js/main.js
+                    echo "Website files are present"
+                '''
+            }
+        }
+        stage('Deploy to web server') {
+            steps {
+                // Configure WEB_SERVER_HOST and WEB_SERVER_USER in Jenkins.
+                // Configure SSH key credentials securely on the Jenkins agent.
+                sh '''
+                    test -n "$WEB_SERVER_HOST"
+                    tar czf website.tar.gz index.html css js assets
+                    scp -o StrictHostKeyChecking=accept-new website.tar.gz "$WEB_SERVER_USER@$WEB_SERVER_HOST:/tmp/website.tar.gz"
+                    ssh -o StrictHostKeyChecking=accept-new "$WEB_SERVER_USER@$WEB_SERVER_HOST"                       'sudo mkdir -p /var/www/cloudtech &&
+                       sudo tar xzf /tmp/website.tar.gz -C /var/www/cloudtech'
+                '''
+            }
+        }
+    }
+    post {
+        success { echo 'Website deployment completed successfully.' }
+        failure { echo 'Deployment failed. Review the stage logs.' }
+    }
+}
