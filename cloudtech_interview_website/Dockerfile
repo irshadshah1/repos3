@@ -1,13 +1,6 @@
-
-FROM amazonlinux:2023
-
-RUN dnf update -y && \
-    dnf install -y httpd && \
-    dnf clean all
-
-COPY . /var/www/html/
-
-EXPOSE 80
-
-CMD ["/usr/sbin/httpd", "-D", "FOREGROUND"]
+FROM ubuntu
+RUN apt-get update -y  
+RUN apt-get install -y apache2
+COPY . /var/www/html
+CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
 
